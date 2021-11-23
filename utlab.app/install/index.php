@@ -10,10 +10,12 @@ class utlab_app extends CModule
     const MODULE_DESCRIPTION = 'Модуль компании Utlab';
     const MODULE_GROUP_RIGHTS = 'N';
     const MODULE_CLASS_EVENTS = 'Utlab\App\Events\Events';
+    private $PATH_INSTALL;
 
 
     public function __construct()
     {
+        $this->SetInstallPath();
         $arModuleVersion = [];
         include __DIR__ . '/version.php';
         if (is_array($arModuleVersion) && array_key_exists('VERSION', $arModuleVersion))
@@ -34,6 +36,7 @@ class utlab_app extends CModule
             ModuleManager::registerModule($this->MODULE_ID);
             $this->InstallEvents();
             $this->InstallFiles();
+            $APPLICATION->IncludeAdminFile(GetMessage('MODULE_INSTALLED'), $this->PATH_INSTALL . '/step.php');
         } else {
             $APPLICATION->ThrowException('Версия ядра меньше 14.00.00');
         }
@@ -41,9 +44,11 @@ class utlab_app extends CModule
 
     public function DoUninstall()
     {
+        global $APPLICATION;
         $this->UnInstallFiles();
         $this->UnInstallEvents();
         ModuleManager::unRegisterModule($this->MODULE_ID);
+        $APPLICATION->IncludeAdminFile(GetMessage('MODULE_UNINSTALLED'), $this->PATH_INSTALL . '/unstep.php');
     }
 
 
@@ -79,6 +84,11 @@ class utlab_app extends CModule
     public function UnInstallFiles()
     {
         DeleteDirFiles(__DIR__.'/admin/', $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin');
+    }
+
+    private function SetInstallPath() {
+        $this->PATH_INSTALL = str_replace("\\", '/', __FILE__);
+        $this->PATH_INSTALL = substr($this->PATH_INSTALL, 0, strlen($this->PATH_INSTALL) - strlen('/index.php'));
     }
 
 
